@@ -1,4 +1,3 @@
 run:
-	gcc test.c -o test
-	clear
-	./test
+	gcc src/main.c src/gnuplot.c -o build/test
+	./build/test
