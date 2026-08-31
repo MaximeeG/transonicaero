@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "gnuplot.h"
+#include "wavesolver.h"
 
 int main(void)
 {
@@ -31,5 +32,8 @@ int main(void)
     fclose(datafile);
     close_gnuplot(gp);
 
+    //WaveSolverState *test;
+    //AlgorithmConfig *testt;
+    //waveInit(test, testt);
     return 0;
 }

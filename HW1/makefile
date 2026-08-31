@@ -1,3 +1,3 @@
 run:
-	gcc src/main.c src/gnuplot.c -o build/test
+	gcc src/main.c src/gnuplot.c src/wavesolver.c -o build/test
 	./build/test
