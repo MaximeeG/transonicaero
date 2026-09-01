@@ -22,14 +22,17 @@ typedef struct {
 } AlgorithmConfig;
 
 typedef struct {
-    AlgorithmConfig config;
+    AlgorithmConfig *config;
 
     //step deltas
     double dx;
     double dt;
     double time; //general time variable
 
-    // current x
+    // the following variables are arrays. 
+    // C doesnt really differentiate between pointers and arrays which is why they are declared as pointers
+
+    // x vector
     double *x;
 
     double *u_prev; //only for leap frog actually

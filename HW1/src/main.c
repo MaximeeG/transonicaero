@@ -32,8 +32,25 @@ int main(void)
     fclose(datafile);
     close_gnuplot(gp);
 
-    //WaveSolverState *test;
-    //AlgorithmConfig *testt;
-    //waveInit(test, testt);
+    AlgorithmConfig config = {
+        300,
+        0,
+        3.14159265,
+        0,
+        0,
+        0
+    };
+    WaveSolverState state = {
+        &config,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    };
+
+    waveInit(&state, &config);
     return 0;
 }
