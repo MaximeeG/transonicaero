@@ -52,5 +52,6 @@ int main(void)
     };
 
     waveInit(&state, &config);
+    printf("%lf", state.u[299]);
     return 0;
 }

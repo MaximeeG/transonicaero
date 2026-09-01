@@ -8,32 +8,27 @@
 
 void waveInit(WaveSolverState *wave, AlgorithmConfig *config){
     // (x1-x0)/(nx-1) to calculate step size
-    double stepSize = ((config->x1) - (config->x0)) / (config->nx - 1);
-    
+    // save step size to current state struct
+    wave->dx = ((config->x1) - (config->x0)) / (config->nx - 1);
+
+    // allocate memory. Why? Because memory needs to be allocated outside of this function.
+    // if we don't malloc at the location of the referenced struct (config in this case),
+    // the data calculated in this function will cease to exist after waveInit() returns.
+    wave->x      = malloc(config->nx * sizeof(double));
+    // calloc() is basically the same as malloc() except it initilizes all values as 0
+    wave->u_prev = calloc(config->nx, sizeof(double));
+    wave->u      = calloc(config->nx, sizeof(double));
+    wave->u_next = calloc(config->nx, sizeof(double));
     
     //loop that fills x vector
-    double vecSizeNX[config->nx];
     for(int i = 0; i < config->nx; i++){ // the < is really important here to avoid seg faults
-        vecSizeNX[i] = stepSize*i;
+        // x[i] = x0[i] * dx but written in weird C syntax
+        wave->x[i] = (config->x0 + i) * wave->dx;
         //printf("%lf ", vecSizeNX[i]); // for debug
     }
-    wave->x = vecSizeNX; //save xVec to the state struct
 
-
-    // initialize all u vectors with zeroes
-    for(int i = 0; i < config->nx; i++){
-        vecSizeNX[i] = 0;
-        //printf("%lf ", vecSizeNX[i]); // for debug
-    }
-    wave->u_prev = vecSizeNX;
-    wave->u = vecSizeNX;
-    wave->u_next = vecSizeNX;
-    
-    // The beginning of time...
-    wave->time = 0;
-
-    
-
+    // set time to zero
+    wave->time = 0.0;
 
 }
 void waveClear(WaveSolverState *wave){
