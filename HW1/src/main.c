@@ -33,7 +33,7 @@ int main(void)
     close_gnuplot(gp);
 
     AlgorithmConfig config = {
-        300,
+        100,
         0,
         3.14159265,
         0,
@@ -52,6 +52,15 @@ int main(void)
     };
 
     waveInit(&state, &config);
-    printf("%lf", state.u[299]);
+    
+
+    int i = 0;
+    while (i < 100)
+    {
+        printf("%lf ", state.u[i]);
+        /* code */
+        i++;
+    }
+    
     return 0;
 }

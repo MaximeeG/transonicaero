@@ -35,7 +35,7 @@ typedef struct {
     // x vector
     double *x;
 
-    double *u_prev; //only for leap frog actually
+    double *u_prev; //only for leap frog
     double *u;
     double *u_next;
 } WaveSolverState;
@@ -51,8 +51,8 @@ void waveInit(WaveSolverState *wave, AlgorithmConfig *config);
 // This function...
 void waveClear(WaveSolverState *wave);
 
-// This function...
-void waveSetInitialCond(WaveSolverState *wave);
+// This function inserts the initial condition into the vector u
+void waveSetInitialCond(WaveSolverState *wave, AlgorithmConfig *config);
 
 // This function...
 void waveStep(WaveSolverState *wave, Algorithm *algorithm);

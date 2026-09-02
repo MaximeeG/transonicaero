@@ -29,13 +29,29 @@ void waveInit(WaveSolverState *wave, AlgorithmConfig *config){
 
     // set time to zero
     wave->time = 0.0;
+    
+    waveSetInitialCond(wave, config);
 
 }
 void waveClear(WaveSolverState *wave){
 
 }
 
-void waveSetInitialCond(WaveSolverState *wave){
+void waveSetInitialCond(WaveSolverState *wave, AlgorithmConfig *config){
+    // The initial condition is hard coded in this function
+    // Changing the initial condition therefore requires changing this function
+    // Initial condition in HW1:
+    // u=1 for 0.5 ≤ x ≤ 1
+    // u=0 on all other points
+
+    // this loops through the entire array. 
+    // its probably not the most efficient way to do this but I'm too lazy to think of a better option now
+    for(int i = 0; i < config->nx; i++){
+        if (wave->x[i] >= 0.5 && wave->x[i] <= 1.0)
+        {
+            wave->u[i] = 1.0;
+        }
+    }
 
 }
 void waveStep(WaveSolverState *wave, Algorithm *algorithm){
