@@ -36,8 +36,8 @@ int main(void)
         100,
         0,
         3.14159265,
-        0,
-        0,
+        1,
+        0.6, //CFL
         0
     };
     WaveSolverState state = {
@@ -55,6 +55,7 @@ int main(void)
     
 
     int i = 0;
+    printf("c = %lf | cfl = %lf\n", config.c, config.cfl);
     while (i < 100)
     {
         printf("%lf ", state.u[i]);

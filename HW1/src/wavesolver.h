@@ -55,7 +55,7 @@ void waveClear(WaveSolverState *wave);
 void waveSetInitialCond(WaveSolverState *wave, AlgorithmConfig *config);
 
 // This function...
-void waveStep(WaveSolverState *wave, Algorithm *algorithm);
+void waveStep(WaveSolverState *wave, AlgorithmConfig *config, Algorithm *algorithm);
 
 // This function...
 void waveWriteToCSV(void);

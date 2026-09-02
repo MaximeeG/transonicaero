@@ -10,6 +10,7 @@ void waveInit(WaveSolverState *wave, AlgorithmConfig *config){
     // (x1-x0)/(nx-1) to calculate step size
     // save step size to current state struct
     wave->dx = ((config->x1) - (config->x0)) / (config->nx - 1);
+    wave->dt = (config->cfl * wave->dx) / config->c;
 
     // allocate memory. Why? Because memory needs to be allocated outside of this function.
     // if we don't malloc at the location of the referenced struct (config in this case),
@@ -30,11 +31,15 @@ void waveInit(WaveSolverState *wave, AlgorithmConfig *config){
     // set time to zero
     wave->time = 0.0;
     
+    // after all the vectors are initialized, the initial conditions are entered
     waveSetInitialCond(wave, config);
 
-}
-void waveClear(WaveSolverState *wave){
+    
 
+}
+
+void waveClear(WaveSolverState *wave){
+    // not sure how this will be needed later so it is emtpy for now
 }
 
 void waveSetInitialCond(WaveSolverState *wave, AlgorithmConfig *config){
@@ -50,11 +55,28 @@ void waveSetInitialCond(WaveSolverState *wave, AlgorithmConfig *config){
         if (wave->x[i] >= 0.5 && wave->x[i] <= 1.0)
         {
             wave->u[i] = 1.0;
+        } else {
+            wave->u[i] = 0.0;
         }
     }
 
 }
-void waveStep(WaveSolverState *wave, Algorithm *algorithm){
+void waveStep(WaveSolverState *wave, AlgorithmConfig *config, Algorithm *algorithm){
+
+    int i = 0;
+    switch (*algorithm)
+    {
+    case WAVE_BACKWARD:
+        
+        for(i = 0; i < config->nx; i++){
+            wave->u_next[i] = wave->u[i] - config->cfl * (wave->u[i] - wave->u[i-1]);
+        }
+
+        break;
+    
+    default:
+        break;
+    }
 
 }
 
