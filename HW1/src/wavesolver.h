@@ -33,6 +33,7 @@ typedef struct {
     // C doesnt really differentiate between pointers and arrays which is why they are declared as pointers
 
     // x vector
+    double currentX; // this variable keeps track of the x value of the current state
     double *x;
 
     double *u_prev; //only for leap frog
@@ -55,9 +56,9 @@ void waveClear(WaveSolverState *wave);
 void waveSetInitialCond(WaveSolverState *wave, AlgorithmConfig *config);
 
 // This function...
-void waveStep(WaveSolverState *wave, AlgorithmConfig *config, Algorithm *algorithm);
+void waveStep(WaveSolverState *wave, AlgorithmConfig *config, Algorithm algorithm);
 
 // This function...
-void waveWriteToCSV(void);
+void stateWriteToCSV(FILE *outputFile, WaveSolverState *wave, AlgorithmConfig *config, Algorithm Algorithm);
 
 #endif // WAVESOLVER_H

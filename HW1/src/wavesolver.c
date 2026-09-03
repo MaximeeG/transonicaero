@@ -59,25 +59,51 @@ void waveSetInitialCond(WaveSolverState *wave, AlgorithmConfig *config){
             wave->u[i] = 0.0;
         }
     }
-
 }
-void waveStep(WaveSolverState *wave, AlgorithmConfig *config, Algorithm *algorithm){
 
-    int i = 0;
-    switch (*algorithm)
+void waveStep(WaveSolverState *wave, AlgorithmConfig *config, Algorithm algorithm){
+
+    int i;
+    switch (algorithm)
     {
     case WAVE_BACKWARD:
-        
-        for(i = 0; i < config->nx; i++){
+
+        // perform algorithm
+        for(i = 1; i < config->nx; i++){
             wave->u_next[i] = wave->u[i] - config->cfl * (wave->u[i] - wave->u[i-1]);
         }
+
+        // increment time and space variables
+        wave->time += wave->dt;
+        wave->currentX += wave->dx;
+
+        // swap u vectors
+        double *temp = wave->u;
+        wave->u = wave->u_next;
+        wave->u_next = temp;
+
 
         break;
     
     default:
         break;
     }
-
 }
 
-void waveWriteToCSV(void);
+void stateWriteToCSV(FILE *outputFile, WaveSolverState *wave, AlgorithmConfig *config, Algorithm Algorithm){
+    // structure of the csv file:
+    // header: t, x, u
+
+    fprintf(outputFile, "%lf,%lf,", wave->time, wave->currentX);
+    
+    fprintf(outputFile, "[");
+
+    for (int i = 0; i < (config->nx) - 1; i++)
+    {
+        fprintf(outputFile, "%lf,", wave->u[i]);
+    }
+
+    fprintf(outputFile, "%lf]\n", wave->u[config->nx]);
+    
+
+}
