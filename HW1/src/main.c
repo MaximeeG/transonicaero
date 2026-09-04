@@ -39,7 +39,7 @@ int main(void)
         100,
         0,
         3.14159265,
-        100,
+        1, // c
         0.6, //CFL
         0
     };
@@ -56,15 +56,27 @@ int main(void)
 
     // I could maybe write a function that manages all this file stuff
     Algorithm activeAlg = WAVE_BACKWARD;
-    FILE *outputFile = fopen("WAVE_BACKWARD.csv", "w");
-    fprintf(outputFile, "t,x,u\n");
+    FILE *outputFile = fopen("build/WAVE_BACKWARD.csv", "w");
+    fprintf(outputFile, "t,u\n");
 
     waveInit(&state, &config);
-    waveStep(&state, &config, activeAlg);
     
-    stateWriteToCSV(outputFile, &state, &config, activeAlg);
-    stateWriteToCSV(outputFile, &state, &config, activeAlg);
+    
+    
+    
+    // stop condition: mid wave reaches x=.5 -> right end wave reaches x=3.0
+    // calculate index corresponding to x value:
+    int i = (3.0 - config.x0)/state.dx;
 
+    // loop until stop condition is reached
+    do
+    {
+        waveStep(&state, &config, activeAlg);
+        stateWriteToCSV(outputFile, &state, &config, activeAlg);
+    } while (state.u[i-1] == 0);
+    
+    
+    
 
     fclose(outputFile);
 

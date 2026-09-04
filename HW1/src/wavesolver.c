@@ -92,9 +92,9 @@ void waveStep(WaveSolverState *wave, AlgorithmConfig *config, Algorithm algorith
 
 void stateWriteToCSV(FILE *outputFile, WaveSolverState *wave, AlgorithmConfig *config, Algorithm Algorithm){
     // structure of the csv file:
-    // header: t, x, u
+    // header: t,u
 
-    fprintf(outputFile, "%lf,%lf,", wave->time, wave->currentX);
+    fprintf(outputFile, "%lf,", wave->time);
     
     fprintf(outputFile, "[");
 
