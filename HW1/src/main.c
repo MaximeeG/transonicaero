@@ -56,24 +56,26 @@ int main(void)
 
     // I could maybe write a function that manages all this file stuff
     Algorithm activeAlg = WAVE_BACKWARD;
-    FILE *outputFile = fopen("build/WAVE_BACKWARD.csv", "w");
+    FILE *outputFile = fopen("HW1/plots/WAVE_BACKWARD.csv", "w");
+
+    if(outputFile == NULL){
+        printf("Output file creation failed.");
+        return 1;
+    }
+
     fprintf(outputFile, "t,u\n");
 
     waveInit(&state, &config);
     
     
-    
-    
-    // stop condition: mid wave reaches x=.5 -> right end wave reaches x=3.0
-    // calculate index corresponding to x value:
-    int i = (3.0 - config.x0)/state.dx;
+    // stop condition: mid wave reaches x=2.5
+    // calculate corresponding time:
+    double targetTime = (2.5 - 0.75) / config.c;
 
-    // loop until stop condition is reached
-    do
-    {
+    do {
         waveStep(&state, &config, activeAlg);
         stateWriteToCSV(outputFile, &state, &config, activeAlg);
-    } while (state.u[i-1] == 0);
+    } while (state.time < targetTime);
     
     
     

@@ -1,4 +1,4 @@
-#!/home/maxime/Uni/transonicaero/.venv/bin/python
+#!/home/maxime/Uni/transonicaero/HW1/.venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
