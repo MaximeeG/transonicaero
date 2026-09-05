@@ -64,6 +64,8 @@ void waveSetInitialCond(WaveSolverState *wave, AlgorithmConfig *config){
 void waveStep(WaveSolverState *wave, AlgorithmConfig *config, Algorithm algorithm){
 
     int i;
+    double *temp;
+
     switch (algorithm)
     {
     case WAVE_BACKWARD:
@@ -78,13 +80,72 @@ void waveStep(WaveSolverState *wave, AlgorithmConfig *config, Algorithm algorith
         wave->currentX += wave->dx;
 
         // swap u vectors
-        double *temp = wave->u;
+        temp = wave->u;
         wave->u = wave->u_next;
         wave->u_next = temp;
 
 
         break;
-    
+    case WAVE_FORWARD:
+
+        // perform algorithm
+        for(i = 1; i < config->nx; i++){
+            wave->u_next[i] = wave->u[i] - config->cfl * (wave->u[i+1] - wave->u[i]);
+        }
+
+        // increment time and space variables
+        wave->time += wave->dt;
+        wave->currentX += wave->dx;
+
+        // swap u vectors
+        temp = wave->u;
+        wave->u = wave->u_next;
+        wave->u_next = temp;
+
+        break;
+
+    case WAVE_LAX_WENDROFF:
+
+        for (i = 1; i < config->nx - 1; i++) {
+            wave->u_next[i] =
+            wave->u[i]
+            - 0.5 * config->cfl
+            * (wave->u[i+1] - wave->u[i-1])
+            + 0.5 * config->cfl * config->cfl
+            * (wave->u[i+1] - 2.0 * wave->u[i] + wave->u[i-1]);
+        }
+
+        // increment time and space variables
+        wave->time += wave->dt;
+        wave->currentX += wave->dx;
+
+        // swap u vectors
+        temp = wave->u;
+        wave->u = wave->u_next;
+        wave->u_next = temp;
+
+        break;
+
+    case WAVE_LAX:
+        for (i = 1; i < config->nx - 1; i++) {
+
+        wave->u_next[i] =
+        0.5 * (wave->u[i+1] + wave->u[i-1])
+        - 0.5 * config->cfl
+        * (wave->u[i+1] - wave->u[i-1]);
+        }
+        
+        // increment time and space variables
+        wave->time += wave->dt;
+        wave->currentX += wave->dx;
+
+        // swap u vectors
+        temp = wave->u;
+        wave->u = wave->u_next;
+        wave->u_next = temp;
+
+        break;
+
     default:
         break;
     }
@@ -92,9 +153,9 @@ void waveStep(WaveSolverState *wave, AlgorithmConfig *config, Algorithm algorith
 
 void stateWriteToCSV(FILE *outputFile, WaveSolverState *wave, AlgorithmConfig *config, Algorithm Algorithm){
     // structure of the csv file:
-    // header: t,u
+    // header: t,c,u (the c value is constant for all time steps. it is only exported to make plotting the analytical solution easier)
 
-    fprintf(outputFile, "%lf,", wave->time);
+    fprintf(outputFile, "%lf,%lf,", wave->time, config->c);
     
     fprintf(outputFile, "[");
 

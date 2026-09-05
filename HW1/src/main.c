@@ -55,15 +55,15 @@ int main(void)
     };
 
     // I could maybe write a function that manages all this file stuff
-    Algorithm activeAlg = WAVE_BACKWARD;
-    FILE *outputFile = fopen("HW1/plots/WAVE_BACKWARD.csv", "w");
+    Algorithm activeAlg = WAVE_LAX;
+    FILE *outputFile = fopen("HW1/plots/WAVE_LAX.csv", "w");
 
     if(outputFile == NULL){
         printf("Output file creation failed.");
         return 1;
     }
 
-    fprintf(outputFile, "t,u\n");
+    fprintf(outputFile, "t,c,u\n");
 
     waveInit(&state, &config);
     
