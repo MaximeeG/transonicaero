@@ -3,9 +3,12 @@ import sys
 from pathlib import Path
 
 # SIMULATION SETTINGS
-algorithm = "LAX"
+# algorithm = "LAX"
+algorithm = "LAX_WENDROFF"
+# algorithm = "FORWARD"
+# algorithm = "BACKWARD"
 cfl = 0.5
-nx = 100
+nx = 10000
 
 
 # path of this directory
