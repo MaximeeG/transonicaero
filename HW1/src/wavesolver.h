@@ -59,6 +59,6 @@ void waveSetInitialCond(WaveSolverState *wave, AlgorithmConfig *config);
 void waveStep(WaveSolverState *wave, AlgorithmConfig *config, Algorithm algorithm);
 
 // This function...
-void stateWriteToCSV(FILE *outputFile, WaveSolverState *wave, AlgorithmConfig *config, Algorithm Algorithm);
+void stateWriteToCSV(FILE *outputFile, WaveSolverState *wave, AlgorithmConfig *config);
 
 #endif // WAVESOLVER_H

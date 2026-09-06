@@ -9,6 +9,7 @@
 void waveInit(WaveSolverState *wave, AlgorithmConfig *config){
     // (x1-x0)/(nx-1) to calculate step size
     // save step size to current state struct
+
     wave->dx = ((config->x1) - (config->x0)) / (config->nx - 1);
     wave->dt = (config->cfl * wave->dx) / config->c;
 
@@ -151,7 +152,7 @@ void waveStep(WaveSolverState *wave, AlgorithmConfig *config, Algorithm algorith
     }
 }
 
-void stateWriteToCSV(FILE *outputFile, WaveSolverState *wave, AlgorithmConfig *config, Algorithm Algorithm){
+void stateWriteToCSV(FILE *outputFile, WaveSolverState *wave, AlgorithmConfig *config){
     // structure of the csv file:
     // header: t,c,u (the c value is constant for all time steps. it is only exported to make plotting the analytical solution easier)
 
