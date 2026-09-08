@@ -25,7 +25,8 @@ void waveInit(WaveSolverState *wave, AlgorithmConfig *config){
     //loop that fills x vector
     for(int i = 0; i < config->nx; i++){ // the < is really important here to avoid seg faults
         // x[i] = x0[i] * dx but written in weird C syntax
-        wave->x[i] = (config->x0 + i) * wave->dx;
+        // JAKOB: Changed next line. Same result for x0 = 0, but otherwise it would be wrong.
+        wave->x[i] = config->x0 + (i * wave->dx);
         //printf("%lf ", vecSizeNX[i]); // for debug
     }
 
