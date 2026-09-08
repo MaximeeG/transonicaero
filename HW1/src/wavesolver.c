@@ -91,7 +91,8 @@ void waveStep(WaveSolverState *wave, AlgorithmConfig *config, Algorithm algorith
     case WAVE_FORWARD:
 
         // perform algorithm
-        for(i = 1; i < config->nx; i++){
+        // Changed last index to nx - 1
+        for(i = 1; i < config->nx - 1; i++){
             wave->u_next[i] = wave->u[i] - config->cfl * (wave->u[i+1] - wave->u[i]);
         }
 
@@ -160,13 +161,13 @@ void stateWriteToCSV(FILE *outputFile, WaveSolverState *wave, AlgorithmConfig *c
     fprintf(outputFile, "%lf,%lf,", wave->time, config->c);
     
     fprintf(outputFile, "[");
-
-    for (int i = 0; i < (config->nx) - 1; i++)
+    // Changed index -2 to -1
+    for (int i = 0; i < (config->nx) - 2; i++)
     {
         fprintf(outputFile, "%lf,", wave->u[i]);
     }
-
-    fprintf(outputFile, "%lf]\n", wave->u[config->nx]);
+    // Changed last element to -1
+    fprintf(outputFile, "%lf]\n", wave->u[config->nx - 1]);
     
 
 }
