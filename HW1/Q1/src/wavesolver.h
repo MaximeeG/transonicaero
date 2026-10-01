@@ -58,7 +58,7 @@ void waveSetInitialCond(WaveSolverState *wave, AlgorithmConfig *config);
 // This function...
 void waveStep(WaveSolverState *wave, AlgorithmConfig *config, Algorithm algorithm);
 
-// This function...
+// This function writes the current time step into a csv file
 void stateWriteToCSV(FILE *outputFile, WaveSolverState *wave, AlgorithmConfig *config);
 
 // This function solves Au=d by using the thomas algorithm.

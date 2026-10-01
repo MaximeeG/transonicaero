@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
     snprintf(
         outputFileName,
         sizeof(outputFileName),
-        "HW1/plots/data/WAVE_%s_CFL_%d_NX_%lu.csv",
+        "plots/data/WAVE_%s_CFL_%d_NX_%lu.csv",
         argv[1],
         (int)(cfl*100), // CFL in filename ist factored x100 so that there is no dot
         nx 

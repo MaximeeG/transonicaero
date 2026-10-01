@@ -22,8 +22,10 @@ plt.rcParams.update({
 # Load data
 # --------------------------------------------------
 
-data_dir = Path("HW1/plots/data")
-figures_dir = Path("HW1/plots/figures")
+plots_dir = Path(__file__).resolve().parent
+data_dir = plots_dir / "data"
+figures_dir = plots_dir / "figures"
+figures_dir.mkdir(parents=True, exist_ok=True)
 
 csv_files = sorted(data_dir.glob("*.csv"))
 
@@ -52,8 +54,8 @@ for filename_path in csv_files:
 
     wave_name = file_stem
 
-    output_3d = Path(f"HW1/plots/figures/{wave_name}_3D.png")
-    output_comparison = Path(f"HW1/plots/figures/{wave_name}_COMPARISON.png")
+    output_3d = figures_dir / f"{wave_name}_3D.png"
+    output_comparison = figures_dir / f"{wave_name}_COMPARISON.png"
 
     if output_3d.exists() and output_comparison.exists():
         print(f"Skipping {wave_name}: plots already exist")
