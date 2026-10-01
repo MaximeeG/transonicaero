@@ -35,9 +35,6 @@ void waveInit(WaveSolverState *wave, AlgorithmConfig *config){
     
     // after all the vectors are initialized, the initial conditions are entered
     waveSetInitialCond(wave, config);
-
-    
-
 }
 
 void waveClear(WaveSolverState *wave){
