@@ -63,6 +63,30 @@ void waveSetInitialCond(WaveSolverState *wave, AlgorithmConfig *config){
     }
 }
 
+void solveThomas(double a, double b, double c, double *d, double *scratch, unsigned int n){
+
+    if (n == 0) {
+        return;
+    }
+
+    // first row
+    scratch[0] = c / b;
+    d[0] /= b;
+
+    // forward elimination
+    for (unsigned int i = 1; i < n; i++) {
+        double denominator = b - a * scratch[i - 1];
+
+        scratch[i] = c / denominator;
+        d[i] = (d[i] - a * d[i - 1]) / denominator;
+    }
+
+    // back substitution
+    for (unsigned int i = n - 1; i > 0; i--) {
+        d[i - 1] -= scratch[i - 1] * d[i];
+    }
+}
+
 void waveStep(WaveSolverState *wave, AlgorithmConfig *config, Algorithm algorithm){
 
     int i;
@@ -149,6 +173,80 @@ void waveStep(WaveSolverState *wave, AlgorithmConfig *config, Algorithm algorith
 
         break;
 
+    case WAVE_LEAPFROG:
+
+        //use Lax-Wendroff to initialize since there is no previous time level
+        if (wave->time == 0.0) {
+            for (i = 1; i < config->nx - 1; i++) {
+                wave->u_next[i] =
+                wave->u[i]
+                - 0.5 * config->cfl
+                * (wave->u[i+1] - wave->u[i-1])
+                + 0.5 * config->cfl * config->cfl
+                * (wave->u[i+1] - 2.0 * wave->u[i] + wave->u[i-1]);
+            }
+        } else {
+            // leapfrog
+            for (i = 1; i < config->nx - 1; i++) {
+                wave->u_next[i] =
+                wave->u_prev[i]
+                - config->cfl
+                * (wave->u[i+1] - wave->u[i-1]);
+            }
+        }
+
+        // increment time and space variables
+        wave->time += wave->dt;
+        wave->currentX += wave->dx;
+
+        // swap u vectors
+        temp = wave->u_prev;
+        wave->u_prev = wave->u;
+        wave->u = wave->u_next;
+        wave->u_next = temp;
+
+        break;
+
+    case WAVE_THETA:
+    { // this case is in its own scope to avoid VLA errors. 
+
+        double theta = config->theta;
+        double d[config->nx];
+        double scratch[config->nx];
+
+        
+        double a = (-1) * theta * (config->cfl/2.0);
+        double b = 1.0; 
+        double c = theta * (config->cfl/2.0);
+
+        for(int i = 0; i < config->nx - 1; i++){
+            //calculate RHS
+            d[i] = wave->u[i] - (1.0 - theta) * (config->cfl / 2.0) * (wave->u[i+1] - wave->u[i-1]); 
+        }
+
+        // copy the solution and set zero boundary values
+        wave->u_next[0] = 0.0;
+        wave->u_next[config->nx - 1] = 0.0;
+
+
+        solveThomas(a, b, c, &d[1], scratch, config->nx - 2);
+
+        for (i = 1; i < config->nx - 1; i++) {
+            wave->u_next[i] = d[i];
+        }
+
+        // increment time and space variables
+        wave->time += wave->dt;
+        wave->currentX += wave->dx;
+
+        // swap u vectors
+        temp = wave->u;
+        wave->u = wave->u_next;
+        wave->u_next = temp;
+
+        break;
+    }
+    
     default:
         break;
     }
@@ -161,12 +259,12 @@ void stateWriteToCSV(FILE *outputFile, WaveSolverState *wave, AlgorithmConfig *c
     fprintf(outputFile, "%lf,%lf,", wave->time, config->c);
     
     fprintf(outputFile, "[");
-    // Changed index -2 to -1
+    // the loop leaves out the last element
     for (int i = 0; i < (config->nx) - 2; i++)
     {
         fprintf(outputFile, "%lf,", wave->u[i]);
     }
-    // Changed last element to -1
+    // last element added here with brackets and line break
     fprintf(outputFile, "%lf]\n", wave->u[config->nx - 1]);
     
 

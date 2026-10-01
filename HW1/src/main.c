@@ -21,6 +21,9 @@ static Algorithm parseAlgorithm(const char *name)
     if (strcmp(name, "LEAPFROG") == 0)
         return WAVE_LEAPFROG;
 
+    if (strcmp(name, "THETA") == 0)
+        return WAVE_THETA;
+
     // invalid value
     return -1;
 }
@@ -58,7 +61,7 @@ int main(int argc, char *argv[])
         .x1 = 3.14159265,
         .c = 1.0,
         .cfl = cfl,
-        .theta = 0.0
+        .theta = 0.5
     };
     WaveSolverState state = {
         &config,

@@ -4,11 +4,14 @@ from pathlib import Path
 
 # SIMULATION SETTINGS
 # algorithm = "LAX"
-algorithm = "LAX_WENDROFF"
+# algorithm = "LAX_WENDROFF"
 # algorithm = "FORWARD"
 # algorithm = "BACKWARD"
+# algorithm = "LEAPFROG"
+algorithm = "THETA"
+
 cfl = 0.5
-nx = 10000
+nx = 500
 
 
 # path of this directory

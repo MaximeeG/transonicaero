@@ -18,7 +18,7 @@ typedef struct {
     double x1; // boundary value
     double c; // constant
     double cfl; // CFL=c*(deltaT/deltaX)
-    double theta;// see HW1 hybrid explicit-implicit
+    double theta;
 } AlgorithmConfig;
 
 typedef struct {
@@ -60,5 +60,12 @@ void waveStep(WaveSolverState *wave, AlgorithmConfig *config, Algorithm algorith
 
 // This function...
 void stateWriteToCSV(FILE *outputFile, WaveSolverState *wave, AlgorithmConfig *config);
+
+// This function solves Au=d by using the thomas algorithm.
+// - n is the size of the vector u
+// - a, b and c are the tridiagonal components of A (n x n)
+// - scrath is a temporary storage variable
+// d gets overwritten with the solution for u. This saves memory and makes the function a bit more convenient to use in this context
+void solveThomas(double a, double b, double c, double *d, double *scratch, unsigned int n);
 
 #endif // WAVESOLVER_H
