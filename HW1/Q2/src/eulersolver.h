@@ -1,6 +1,8 @@
 #ifndef EULERSOLVER_H
 #define EULERSOLVER_H
 
+#include <stdio.h> // FILE used by stateWriteToCSV
+
 typedef enum {
     MACCORMACK,
     BEAM_WARMING
@@ -13,7 +15,7 @@ typedef enum {
 
 // Struct that takes in the general conditions of the simulation
 typedef struct {
-    unsigned int nx; // Number of grid points (at least 2)
+    unsigned int nx; // Number of grid points (at least 5 for the dissipation stencil)
     double x0;      // Domain start: 0 for this homework
     double x1;      // Domain end: 10 for this homework
     double cfl;     // Target CFL = max(|u| + a) * dt / dx
@@ -62,6 +64,8 @@ typedef struct {
 } EulerSolverState;
 
 void eulerInit(EulerSolverState *state, AlgorithmConfig *config);
+
+void eulerClear(EulerSolverState *state);
 
 void eulerSetInitialCond(EulerSolverState *state);
 
