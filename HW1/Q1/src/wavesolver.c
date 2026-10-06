@@ -243,6 +243,68 @@ void waveStep(WaveSolverState *wave, AlgorithmConfig *config, Algorithm algorith
 
         break;
     }
+
+case WAVE_OWN2SPACE4TIME:
+    {
+        double cfl = config->cfl;
+        double cfl2 = cfl * cfl;
+        double cfl3 = cfl2 * cfl;
+        double cfl4 = cfl3 * cfl;
+
+        for (i = 2; i < config->nx - 2; i++) {
+            wave->u_next[i] = wave->u[i]
+                - (cfl / 2.0) * (wave->u[i+1] - wave->u[i-1])
+                + (cfl2 / 2.0) * (wave->u[i+1] - 2.0 * wave->u[i] + wave->u[i-1])
+                - (cfl3 / 12.0) * (wave->u[i+2] - 2.0 * wave->u[i+1] + 2.0 * wave->u[i-1] - wave->u[i-2])
+                + (cfl4 / 24.0) * (wave->u[i+2] - 4.0 * wave->u[i+1] + 6.0 * wave->u[i] - 4.0 * wave->u[i-1] + wave->u[i-2]);
+        }
+        
+        // Handle boundaries
+        wave->u_next[0] = 0.0;
+        wave->u_next[1] = 0.0;
+        wave->u_next[config->nx - 2] = 0.0;
+        wave->u_next[config->nx - 1] = 0.0;
+
+        // increment time and space variables
+        wave->time += wave->dt;
+        wave->currentX += wave->dx;
+
+        // swap u vectors
+        temp = wave->u;
+        wave->u = wave->u_next;
+        wave->u_next = temp;
+
+        break;
+    }
+
+    case WAVE_OWN4SPACE2TIME:
+    {
+        double cfl = config->cfl;
+        double cfl2 = cfl * cfl;
+
+        for (i = 2; i < config->nx - 2; i++) {
+            wave->u_next[i] = wave->u[i]
+                - (cfl / 12.0) * (-wave->u[i+2] + 8.0 * wave->u[i+1] - 8.0 * wave->u[i-1] + wave->u[i-2])
+                + (cfl2 / 24.0) * (-wave->u[i+2] + 16.0 * wave->u[i+1] - 30.0 * wave->u[i] + 16.0 * wave->u[i-1] - wave->u[i-2]);
+        }
+
+        // Handle boundaries 
+        wave->u_next[0] = 0.0;
+        wave->u_next[1] = 0.0;
+        wave->u_next[config->nx - 2] = 0.0;
+        wave->u_next[config->nx - 1] = 0.0;
+
+        // increment time and space variables
+        wave->time += wave->dt;
+        wave->currentX += wave->dx;
+
+        // swap u vectors
+        temp = wave->u;
+        wave->u = wave->u_next;
+        wave->u_next = temp;
+
+        break;
+    }
     
     default:
         break;

@@ -8,7 +8,9 @@ typedef enum {
     WAVE_LAX,
     WAVE_LAX_WENDROFF,
     WAVE_LEAPFROG,
-    WAVE_THETA
+    WAVE_THETA,
+    WAVE_OWN2SPACE4TIME,
+    WAVE_OWN4SPACE2TIME
 } Algorithm;
 
 // Struct that takes in the general conditions of the simulation

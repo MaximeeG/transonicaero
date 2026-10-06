@@ -24,6 +24,12 @@ static Algorithm parseAlgorithm(const char *name)
     if (strcmp(name, "THETA") == 0)
         return WAVE_THETA;
 
+    if (strcmp(name, "OWN2SPACE4TIME") == 0)
+        return WAVE_OWN2SPACE4TIME;
+
+    if (strcmp(name, "OWN4SPACE2TIME") == 0)
+        return WAVE_OWN4SPACE2TIME;
+
     // invalid value
     return -1;
 }
