@@ -4,11 +4,6 @@
 #include <string.h>
 #include "eulersolver.h"
 
-// artificial dissipation settings. The pressure sensor turns on second-order
-// differences around shocks. Fourth-order differences damp grid oscillations
-// in the smooth parts without adding first-order spatial error there.
-#define DISSIPATION_2 1.0
-#define DISSIPATION_4 0.02
 
 // where does this come from? Does it really have to be its own function?
 static double pressure(const double Q[3], double area, double gamma){
@@ -148,64 +143,19 @@ static void calculateFlux(const EulerSolverState *state, double (*Q)[3], double 
     }
 }
 
-// the dissipation is added to the maccormack method to increase stability.
-// TO DO: double check if this conflicts with anything written in the lecture notes
-static void calculateDissipation(const EulerSolverState *state, double (*Q)[3], double (*dissipation)[3], double *coefficient)
-{
-    unsigned int n = state->config->nx;
-    double *p = allocateArray(n, sizeof(*p));
-    double *speed = allocateArray(n, sizeof(*speed));
-    double *sensor = allocateArray(n, sizeof(*sensor));
-
-    for (unsigned int i = 0; i < n; i++) {
-
-        p[i] = pressure(Q[i], state->area[i], state->config->gamma);
-        double rho = Q[i][0] / state->area[i];
-        speed[i] = fabs(Q[i][1] / Q[i][0]) + sqrt(state->config->gamma * p[i] / rho);
-    }
-
-    for (unsigned int i = 1; i < n - 1; i++) {
-        sensor[i] = fabs(p[i+1] - 2.0 * p[i] + p[i-1]) / (p[i+1] + 2.0 * p[i] + p[i-1]);
-    }
-
-    sensor[0] = sensor[1];
-    sensor[n-1] = sensor[n-2];
-
-    // dissipation[i] is a face flux between grid points i and i+1.
-    // Using its difference in the update keeps the added term conservative.
-    for (unsigned int i = 0; i < n - 1; i++) {
-
-        double lambda = fmax(speed[i], speed[i+1]);
-        double eps2 = DISSIPATION_2 * fmax(sensor[i], sensor[i+1]);
-        double eps4 = fmax(0.0, DISSIPATION_4 - eps2);
-
-        coefficient[i] = lambda * eps2;
-        
-        for (int k = 0; k < 3; k++) {
-            double thirdDifference = 0.0;
-            if (i > 0 && i < n - 2) {
-                thirdDifference = Q[i+2][k] - 3.0 * Q[i+1][k] + 3.0 * Q[i][k] - Q[i-1][k];
-            }
-            dissipation[i][k] = lambda * (eps2 * (Q[i+1][k] - Q[i][k]) - eps4 * thirdDifference);
-        }
-    }
-    free(p);
-    free(speed);
-    free(sensor);
-}
 
 // where the magic happens:
-static void macCormackStep(EulerSolverState *state, double (*F)[3], double (*S)[3], double (*dissipation)[3], double *coefficient){
+static void macCormackStep(EulerSolverState *state, double (*F)[3], double (*S)[3], double *coefficient){
     unsigned int n = state->config->nx;
     double ratio = state->dt / state->dx;
     calculateFlux(state, state->Q, F, S);
-    calculateDissipation(state, state->Q, dissipation, coefficient);
+
 
     // predictor: forward difference for the flux
     for (unsigned int i = 1; i < n - 1; i++) {
         for (int k = 0; k < 3; k++) {
             state->Q_predictor[i][k] =
-            state->Q[i][k] - ratio * (F[i+1][k] - F[i][k]) + state->dt * S[i][k] + ratio * (dissipation[i][k] - dissipation[i-1][k]);
+            state->Q[i][k] - ratio * (F[i+1][k] - F[i][k]) + state->dt * S[i][k];
         }
     }
 
@@ -213,14 +163,12 @@ static void macCormackStep(EulerSolverState *state, double (*F)[3], double (*S)[
     setBoundaryCond(state, state->Q_predictor);
 
     calculateFlux(state, state->Q_predictor, F, S);
-    calculateDissipation(state, state->Q_predictor, dissipation, coefficient);
 
     // corrector: backward difference using the predicted state
     for (unsigned int i = 1; i < n - 1; i++) {
         for (int k = 0; k < 3; k++) {
-            state->Q_next[i][k] = 0.5 * (state->Q[i][k] + state->Q_predictor[i][k]
-                - ratio * (F[i][k] - F[i-1][k]) + state->dt * S[i][k]
-                + ratio * (dissipation[i][k] - dissipation[i-1][k]));
+            state->Q_next[i][k] = 
+            0.5 * (state->Q[i][k] + state->Q_predictor[i][k] - ratio * (F[i][k] - F[i-1][k]) + state->dt * S[i][k]);
         }
     }
 
@@ -309,7 +257,7 @@ static void solveBlockThomas(double (*lower)[3][3], double (*diagonal)[3][3], do
     }
 }
 
-static int beamWarmingStep(EulerSolverState *state, double (*F)[3], double (*S)[3], double (*dissipation)[3], double *coefficient){
+static int beamWarmingStep(EulerSolverState *state, double (*F)[3], double (*S)[3], double *coefficient){
     unsigned int n = state->config->nx;
     double gamma = state->config->gamma;
     double ratio = state->dt / state->dx;
@@ -320,7 +268,6 @@ static int beamWarmingStep(EulerSolverState *state, double (*F)[3], double (*S)[
     double (*delta)[3] = state->Q_predictor;
 
     calculateFlux(state, state->Q, F, S);
-    calculateDissipation(state, state->Q, dissipation, coefficient);
     memset(delta, 0, n * sizeof(*delta));
     for (unsigned int i = 0; i < n; i++) {
         fluxJacobian(state->Q[i], gamma, J[i]);
@@ -336,13 +283,14 @@ static int beamWarmingStep(EulerSolverState *state, double (*F)[3], double (*S)[
     // This is first order in time, appropriate here for marching to steady state.
     for (unsigned int i = 1; i < n - 1; i++) {
         for (int r = 0; r < 3; r++) {
-            delta[i][r] = -0.5 * ratio * (F[i+1][r] - F[i-1][r])
-                + state->dt * S[i][r]
-                + ratio * (dissipation[i][r] - dissipation[i-1][r]);
+
+            delta[i][r] = -0.5 * ratio * (F[i+1][r] - F[i-1][r]) + state->dt * S[i][r];
+
             for (int c = 0; c < 3; c++) {
                 lower[i][r][c] = -0.5 * ratio * J[i-1][r][c];
                 upper[i][r][c] = 0.5 * ratio * J[i+1][r][c];
             }
+
             lower[i][r][r] -= ratio * coefficient[i-1];
             diagonal[i][r][r] += ratio * (coefficient[i-1] + coefficient[i]);
             upper[i][r][r] -= ratio * coefficient[i];
@@ -391,7 +339,6 @@ void eulerStep(EulerSolverState *state){
     state->dt = calculateTimeStep(state);
     double (*F)[3] = allocateArray(n, sizeof(*F));
     double (*S)[3] = allocateArray(n, sizeof(*S));
-    double (*dissipation)[3] = allocateArray(n, sizeof(*dissipation));
     double *coefficient = allocateArray(n, sizeof(*coefficient));
 
     
@@ -399,11 +346,11 @@ void eulerStep(EulerSolverState *state){
     
     switch (state->config->algorithm) {
         case MACCORMACK:
-            macCormackStep(state, F, S, dissipation, coefficient);
+            macCormackStep(state, F, S, coefficient);
             break;
 
         case BEAM_WARMING:
-            accepted = beamWarmingStep(state, F, S, dissipation, coefficient);
+            accepted = beamWarmingStep(state, F, S, coefficient);
             break;
 
         default:
@@ -412,7 +359,6 @@ void eulerStep(EulerSolverState *state){
     
     free(F);
     free(S);
-    free(dissipation);
     free(coefficient);
 
     // increment time and swap the solution arrays, same as in Q1
