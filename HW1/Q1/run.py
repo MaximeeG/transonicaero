@@ -9,8 +9,10 @@ from pathlib import Path
 # algorithm = "BACKWARD"
 # algorithm = "LEAPFROG"
 algorithm = "THETA"
+#algorithm = "OWN2SPACE4TIME"
+#algorithm = "OWN4SPACE2TIME"
 
-cfl = 0.5
+cfl = 0.8
 nx = 500
 
 

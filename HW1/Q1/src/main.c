@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
         .x1 = 3.14159265,
         .c = 1.0,
         .cfl = cfl,
-        .theta = 0.5
+        .theta = 1
     };
     WaveSolverState state = {
         &config,
