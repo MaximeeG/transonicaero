@@ -88,6 +88,7 @@ int main(void){
         printf("Maximum steps reached without convergence.\n");
     }
 
+    fclose(outputFile);
     eulerClear(&state);
 
     return 0;

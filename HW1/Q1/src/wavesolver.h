@@ -55,13 +55,13 @@ void waveInit(WaveSolverState *wave, AlgorithmConfig *config);
 void waveClear(WaveSolverState *wave);
 
 // This function inserts the initial condition into the vector u
-void waveSetInitialCond(WaveSolverState *wave, AlgorithmConfig *config);
+void waveSetInitialCond(WaveSolverState *wave);
 
 // This function...
-void waveStep(WaveSolverState *wave, AlgorithmConfig *config, Algorithm algorithm);
+void waveStep(WaveSolverState *wave, Algorithm algorithm);
 
 // This function writes the current time step into a csv file
-void stateWriteToCSV(FILE *outputFile, WaveSolverState *wave, AlgorithmConfig *config);
+void stateWriteToCSV(FILE *outputFile, WaveSolverState *wave);
 
 // This function solves Au=d by using the thomas algorithm.
 // - n is the size of the vector u

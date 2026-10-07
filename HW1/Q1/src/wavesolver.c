@@ -3,10 +3,10 @@
 #include <math.h>
 #include "wavesolver.h"
 
-#define PI 3.14159265358979323846
-#define E 2.71828182845904523536
 
 void waveInit(WaveSolverState *wave, AlgorithmConfig *config){
+    
+    wave->config = config;
     // (x1-x0)/(nx-1) to calculate step size
     // save step size to current state struct
 
@@ -34,20 +34,31 @@ void waveInit(WaveSolverState *wave, AlgorithmConfig *config){
     wave->time = 0.0;
     
     // after all the vectors are initialized, the initial conditions are entered
-    waveSetInitialCond(wave, config);
+    waveSetInitialCond(wave);
 }
+
 
 void waveClear(WaveSolverState *wave){
-    // not sure how this will be needed later so it is emtpy for now
+    free(wave->x);
+    free(wave->u_prev);
+    free(wave->u);
+    free(wave->u_next);
+
+    wave->x = NULL;
+    wave->u_prev = NULL;
+    wave->u = NULL;
+    wave->u_next = NULL;
 }
 
-void waveSetInitialCond(WaveSolverState *wave, AlgorithmConfig *config){
+
+void waveSetInitialCond(WaveSolverState *wave){
     // The initial condition is hard coded in this function
     // Changing the initial condition therefore requires changing this function
     // Initial condition in HW1:
     // u=1 for 0.5 ≤ x ≤ 1
     // u=0 on all other points
 
+    AlgorithmConfig *config = wave->config;
     // this loops through the entire array. 
     // its probably not the most efficient way to do this but I'm too lazy to think of a better option now
     for(int i = 0; i < config->nx; i++){
@@ -59,6 +70,7 @@ void waveSetInitialCond(WaveSolverState *wave, AlgorithmConfig *config){
         }
     }
 }
+
 
 void solveThomas(double a, double b, double c, double *d, double *scratch, unsigned int n){
 
@@ -84,8 +96,10 @@ void solveThomas(double a, double b, double c, double *d, double *scratch, unsig
     }
 }
 
-void waveStep(WaveSolverState *wave, AlgorithmConfig *config, Algorithm algorithm){
 
+void waveStep(WaveSolverState *wave, Algorithm algorithm){
+
+    AlgorithmConfig *config = wave->config;
     int i;
     double *temp;
 
@@ -311,10 +325,12 @@ case WAVE_OWN2SPACE4TIME:
     }
 }
 
-void stateWriteToCSV(FILE *outputFile, WaveSolverState *wave, AlgorithmConfig *config){
+
+void stateWriteToCSV(FILE *outputFile, WaveSolverState *wave){
     // structure of the csv file:
     // header: t,c,u (the c value is constant for all time steps. it is only exported to make plotting the analytical solution easier)
 
+    AlgorithmConfig *config = wave->config;
     fprintf(outputFile, "%lf,%lf,", wave->time, config->c);
     
     fprintf(outputFile, "[");

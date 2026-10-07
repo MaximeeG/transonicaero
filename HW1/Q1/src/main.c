@@ -34,6 +34,7 @@ static Algorithm parseAlgorithm(const char *name)
     return -1;
 }
 
+
 int main(int argc, char *argv[])
 {
 
@@ -69,16 +70,7 @@ int main(int argc, char *argv[])
         .cfl = cfl,
         .theta = 1
     };
-    WaveSolverState state = {
-        &config,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-    };
+    WaveSolverState state = {0};
 
     // assemble file name and open file
     char outputFileName[100];
@@ -104,19 +96,19 @@ int main(int argc, char *argv[])
 
     waveInit(&state, &config);
     // write t=0 state to file
-    stateWriteToCSV(outputFile, &state, &config);
+    stateWriteToCSV(outputFile, &state);
     
     // stop condition: mid wave reaches x=2.5
     // calculate corresponding time:
     double targetTime = (2.5 - 0.75) / config.c;
 
     do {
-        waveStep(&state, &config, activeAlg);
-        stateWriteToCSV(outputFile, &state, &config);
+        waveStep(&state, activeAlg);
+        stateWriteToCSV(outputFile, &state);
     } while (state.time < targetTime);
     
     fclose(outputFile);
-    waveClear(&state); //function not implented yet (TO DO)
+    waveClear(&state);
 
     return 0;
 }
