@@ -43,7 +43,6 @@ typedef struct {
     double *u_next;
 } WaveSolverState;
 
-// All struct arguments are passed by reference to improve efficiency:
 
 // This function initializes the PDE by:
 // - copying config data from AlgorithmConfig
@@ -51,13 +50,13 @@ typedef struct {
 // - alloc memory and build grid
 void waveInit(WaveSolverState *wave, AlgorithmConfig *config);
 
-// This function...
+// This function clears all arrays after simulation
 void waveClear(WaveSolverState *wave);
 
 // This function inserts the initial condition into the vector u
 void waveSetInitialCond(WaveSolverState *wave);
 
-// This function...
+// This function performs one step of the selected algorithm
 void waveStep(WaveSolverState *wave, Algorithm algorithm);
 
 // This function writes the current time step into a csv file
