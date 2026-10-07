@@ -4,8 +4,6 @@
 #include "eulersolver.h"
 
 
-// check here somewhere that nx>5
-
 int main(void){
 
     EulerAlgorithm algorithm = BEAM_WARMING;
@@ -15,7 +13,7 @@ int main(void){
     char algName[20] = "BEAM_WARMING";
     char outletName[10] = "SUB";
     double cfl = 0.5;
-    long unsigned int nx = 401;
+    long unsigned int nx = 401; // must be greater than 5
 
     // assemble file name and open file
     char outputFileName[100];
@@ -68,13 +66,10 @@ int main(void){
 
     while (step < config.max_steps && residual > config.residual_tolerance) {
 
-        
         eulerStep(&state);
         stateWriteToCSV(outputFile, &state);
         residual = 0.0;
 
-        // compute residual:
-        // compare the new and old solutions at the interior points
         for (unsigned int i = 1; i < config.nx - 1; i++) {
             for (int k = 0; k < 3; k++) {
                 double change = fabs(state.Q[i][k] - state.Q_next[i][k]);
@@ -84,7 +79,6 @@ int main(void){
                 residual = fmax(residual, value);
             }
         }
-
         step++;
     }
 
@@ -93,7 +87,6 @@ int main(void){
     } else {
         printf("Maximum steps reached without convergence.\n");
     }
-    
 
     eulerClear(&state);
 

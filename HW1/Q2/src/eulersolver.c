@@ -5,7 +5,6 @@
 #include "eulersolver.h"
 
 
-
 static double pressure(const double Q[3], double area, double gamma){
     // Q contains area-weighted values, so divide by A to get pressure
     return (gamma - 1.0) * (Q[2] - 0.5 * Q[1] * Q[1] / Q[0]) / area;
@@ -52,12 +51,10 @@ static void setBoundaryCond(const EulerSolverState *state, double (*Q)[3]){
         double c_out = sqrt(gamma * p_out / rho_out);
 
         // preserve the right-running invariant: u + 2c/(gamma-1)
-        double u_out = u_inside
-                    + 2.0 * (c_inside - c_out) / (gamma - 1.0);
+        double u_out = u_inside + 2.0 * (c_inside - c_out) / (gamma - 1.0);
 
         // convert the outlet flow conditions back to conserved quantities
-        double e_out = p_out / (gamma - 1.0)
-                    + 0.5 * rho_out * u_out * u_out;
+        double e_out = p_out / (gamma - 1.0) + 0.5 * rho_out * u_out * u_out;
 
         Q[last][0] = rho_out * state->area[last];
         Q[last][1] = rho_out * u_out * state->area[last];
@@ -65,10 +62,11 @@ static void setBoundaryCond(const EulerSolverState *state, double (*Q)[3]){
     }
 }
 
-// what does this function do? 
-// I think it only calculates deltaT
+
 static double calculateTimeStep(const EulerSolverState *state){
+    
     double maxSpeed = 0.0;
+
     for (unsigned int i = 0; i < state->config->nx; i++) {
         double rho = state->Q[i][0] / state->area[i];
         double u = state->Q[i][1] / state->Q[i][0];
@@ -110,6 +108,7 @@ void eulerInit(EulerSolverState *state, AlgorithmConfig *config){
     state->dt = calculateTimeStep(state);
 }
 
+
 void eulerClear(EulerSolverState *state){
     
     if (state == NULL) {
@@ -123,6 +122,7 @@ void eulerClear(EulerSolverState *state){
     free(state->Q_next);
     *state = (EulerSolverState){0};
 }
+
 
 void eulerSetInitialCond(EulerSolverState *state){
 
@@ -168,12 +168,11 @@ static void calculateFlux(const EulerSolverState *state, double (*Q)[3], double 
 }
 
 
-// where the magic happens:
 static void macCormackStep(EulerSolverState *state, double (*F)[3], double (*S)[3]){
+
     unsigned int n = state->config->nx;
     double ratio = state->dt / state->dx;
     calculateFlux(state, state->Q, F, S);
-
 
     // predictor: forward difference for the flux
     for (unsigned int i = 1; i < n - 1; i++) {
@@ -200,10 +199,12 @@ static void macCormackStep(EulerSolverState *state, double (*F)[3], double (*S)[
     setBoundaryCond(state, state->Q_next);
 }
 
+
 static void fluxJacobian(const double Q[3], double gamma, double J[3][3]){
     // J = dF/dQ. Area cancels here because Q and F both include it
     double u = Q[1] / Q[0];
     double H = gamma * Q[2] / Q[0] - 0.5 * (gamma - 1.0) * u * u;
+
     J[0][0] = 0.0;
     J[0][1] = 1.0;
     J[0][2] = 0.0;
@@ -213,6 +214,7 @@ static void fluxJacobian(const double Q[3], double gamma, double J[3][3]){
     J[2][0] = u * (0.5 * (gamma - 1.0) * u * u - H);
     J[2][1] = H - (gamma - 1.0) * u * u;
     J[2][2] = gamma * u;
+
 }
 
 
@@ -258,7 +260,7 @@ static void solveBlock(double B[3][3], double C[3][3], double rhs[3]){
 
 static void solveBlockThomas(double (*lower)[3][3], double (*diagonal)[3][3], double (*upper)[3][3], double (*rhs)[3], unsigned int n){
     // same idea as the scalar Thomas algorithm in Q1, but each entry is
-    // now a 3x3 matrix because mass, momentum and energy are coupled.
+    // now a 3x3 matrix because mass, momentum and energy are coupledq
     solveBlock(diagonal[0], upper[0], rhs[0]);
     for (unsigned int i = 1; i < n; i++) {
         for (int r = 0; r < 3; r++) {
@@ -271,6 +273,7 @@ static void solveBlockThomas(double (*lower)[3][3], double (*diagonal)[3][3], do
         }
         solveBlock(diagonal[i], upper[i], rhs[i]);
     }
+
     // back substitution. rhs gets overwritten with the solution delta Q.
     for (unsigned int i = n - 1; i > 0; i--) {
         for (int r = 0; r < 3; r++) {
@@ -313,7 +316,7 @@ static void beamWarmingStep(EulerSolverState *state, double (*F)[3], double (*S)
     // [I + dt*Dx*J - dt*dS/dQ - dt*D2] deltaQ = dt*(-Dx*F + S + D).
     // Dx is centered. Second-difference dissipation is implicit with frozen
     // coefficients; the fourth-difference part is explicit on the RHS.
-    // This is first order in time, appropriate here for marching to steady state.
+    // This is first order in time, appropriate here for marching to steady state
     for (unsigned int i = 1; i < n - 1; i++) {
         for (int r = 0; r < 3; r++) {
 
@@ -329,8 +332,8 @@ static void beamWarmingStep(EulerSolverState *state, double (*F)[3], double (*S)
             diagonal[i][r][r] += 2.0 * eps_i;
             upper[i][r][r] -= eps_i;
 
-            // explicit fourth difference acting on the current solution.
-            // The full stencil is available only at points 2 through n-3.
+            // explicit fourth difference acting on current solution
+            // The full stencil is available only at points 2 through n-3
             if (i >= 2 && i < n - 2) {
                 double fourth_difference =
                     state->Q[i-2][r]
@@ -350,7 +353,6 @@ static void beamWarmingStep(EulerSolverState *state, double (*F)[3], double (*S)
         diagonal[i][1][1] += factor * u;
         diagonal[i][1][2] -= factor;
     }
-
     
     unsigned int last = n - 1;
     unsigned int inside = n - 2;
@@ -402,24 +404,19 @@ static void beamWarmingStep(EulerSolverState *state, double (*F)[3], double (*S)
         // build each column of the boundary Jacobian using the chain rule
         // p_out is prescribed, so its derivative is zero
         for (int k = 0; k < 3; k++) {
-            double drho_out = densityRatio * drho[k]
-                        - rho_out * dp[k] / (gamma * p);
+            double drho_out = densityRatio * drho[k] - rho_out * dp[k] / (gamma * p);
 
             double dc = 0.5 * c * (dp[k] / p - drho[k] / rho);
             double dc_out = -0.5 * c_out * drho_out / rho_out;
 
-            double du_out = du[k]
-                        + 2.0 * (dc - dc_out) / (gamma - 1.0);
+            double du_out = du[k] + 2.0 * (dc - dc_out) / (gamma - 1.0);
 
             // lower = -dQ_out/dQ_inside
             lower[last][0][k] = -A_out * drho_out;
 
-            lower[last][1][k] = -A_out
-                            * (u_out * drho_out + rho_out * du_out);
+            lower[last][1][k] = -A_out * (u_out * drho_out + rho_out * du_out);
 
-            lower[last][2][k] = -A_out
-                            * (0.5 * u_out * u_out * drho_out
-                                + rho_out * u_out * du_out);
+            lower[last][2][k] = -A_out * (0.5 * u_out * u_out * drho_out + rho_out * u_out * du_out);
         }
     }
 
@@ -437,7 +434,7 @@ static void beamWarmingStep(EulerSolverState *state, double (*F)[3], double (*S)
 
 }
 
-// def some simplification necessary here
+
 void eulerStep(EulerSolverState *state){
     unsigned int n = state->config->nx;
     setBoundaryCond(state, state->Q);
@@ -463,7 +460,7 @@ void eulerStep(EulerSolverState *state){
     free(F);
     free(S);
 
-    // increment time and swap the solution arrays, same as in Q1
+    // increment time and swap the solution arrays
     state->time += state->dt;
     double (*temp)[3] = state->Q;
     state->Q = state->Q_next;
@@ -478,7 +475,6 @@ void stateWriteToCSV(FILE *outputFile, const EulerSolverState *state){
     }
 
     // one row per grid point. Calling this again appends another snapshot.
-    // Open the file with "w" for a new run; write the header only once.
     if (ftell(outputFile) == 0) {
         fprintf(outputFile, "t,x,A,rho,u,p,M,e,mass_flow\n");
     }
